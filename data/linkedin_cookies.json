@@ -1,0 +1,82 @@
+[
+  {
+    "name": "sdui_ver",
+    "value": "sdui-flagship:0.1.43614+SduiFlagshipGuest",
+    "domain": ".linkedin.com",
+    "path": "/",
+    "expires": 1813565609.821107,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "JSESSIONID",
+    "value": "ajax:1260117263568005011",
+    "domain": ".www.linkedin.com",
+    "path": "/",
+    "expires": -1,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "lang",
+    "value": "v=2&lang=en-us",
+    "domain": ".linkedin.com",
+    "path": "/",
+    "expires": -1,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "bcookie",
+    "value": "\"v=2&a8109a63-e5d6-4a48-874e-c6a891d7ba3c\"",
+    "domain": ".linkedin.com",
+    "path": "/",
+    "expires": 1813565609.82136,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "bscookie",
+    "value": "\"v=1&202606210813288f0f209a-52e4-4eff-8d8e-5f8dcfc73398AQGaH6e5JT8tLvhaye4ujLFWZhCF0TNQ\"",
+    "domain": ".www.linkedin.com",
+    "path": "/",
+    "expires": 1813565609.821538,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "lidc",
+    "value": "\"b=TGST05:s=T:r=T:a=T:p=T:g=3540:u=1:x=1:i=1782029609:t=1782116009:v=2:sig=AQFHaDZtMbu6eUyBmsKb0flOk2S4LPmj\"",
+    "domain": ".linkedin.com",
+    "path": "/",
+    "expires": 1782116009.262545,
+    "httpOnly": false,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "__cf_bm",
+    "value": "ZYxGa.tySL6Jgo_9kItGD27FY3ygSJyxDnWlsdG0vk8-1782029608.8666065-1.0.1.1-P2.yffeoSrnh7lfZIVSSWrjrWFcg_vUqHq9cIWxwCOrpPHQnNHIC9lNO3HcIIbPU.s8SL8KNUNUuN5UHA_WQ_CX8mlsx3GFtfBxShwWoxLfBbD5dHSwzd5wd1GzUOnLB",
+    "domain": ".linkedin.com",
+    "path": "/",
+    "expires": 1782031409.262613,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None"
+  },
+  {
+    "name": "timezone",
+    "value": "Asia/Jakarta",
+    "domain": ".www.linkedin.com",
+    "path": "/",
+    "expires": 1783239213,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  }
+]

@@ -112,25 +112,23 @@ def apply_stealth(page: Page):
 
 
 def load_cookies(context, cookie_path: Optional[Path] = None):
-    """Load saved cookies for LinkedIn session."""
+    """Load Playwright storage_state from file."""
     cookie_file = cookie_path or Path("data/linkedin_cookies.json")
     if cookie_file.exists():
-        with open(cookie_file) as f:
-            cookies = json.load(f)
-        context.add_cookies(cookies)
-        logger.info(f"Loaded {len(cookies)} cookies from {cookie_file}")
+        # Playwright storage_state is loaded via context constructor
+        logger.info(f"Storage state found: {cookie_file}")
         return True
     return False
 
 
 def save_cookies(context, cookie_path: Optional[Path] = None):
-    """Save cookies after successful login."""
+    """Save cookies in Playwright storage_state format."""
     cookie_file = cookie_path or Path("data/linkedin_cookies.json")
     cookie_file.parent.mkdir(parents=True, exist_ok=True)
-    cookies = context.cookies()
+    state = context.storage_state()
     with open(cookie_file, "w") as f:
-        json.dump(cookies, f, indent=2)
-    logger.info(f"Saved {len(cookies)} cookies to {cookie_file}")
+        json.dump(state, f, indent=2)
+    logger.info(f"Saved storage state ({len(state.get('cookies',[]))} cookies) to {cookie_file}")
 
 
 def login_and_save_cookies(
@@ -181,14 +179,14 @@ def login_and_save_cookies(
             # Try to save anyway
             pass
 
-        # Save cookies regardless (partial session may still work)
-        cookies = context.cookies()
+        # Save cookies in storage_state format
+        state = context.storage_state()
         with open(cookie_file, "w") as f:
-            json.dump(cookies, f, indent=2)
-        print(f"✅ Saved {len(cookies)} cookies to {cookie_file}")
+            json.dump(state, f, indent=2)
+        print(f"✅ Saved storage state ({len(state.get('cookies', []))} cookies) to {cookie_file}")
 
         browser.close()
-        return len(cookies) > 0
+        return len(state.get("cookies", [])) > 0
 
 
 def scroll_posts(page: Page, target_posts: int = 200, max_scrolls: int = 100):
@@ -253,6 +251,8 @@ def scrape_company_posts(
             "Chrome/125.0.0.0 Safari/537.36"
         ),
         locale="en-US",
+        # Use existing Chrome profile for persistent cookies
+        storage_state=cookie_path if cookie_path and cookie_path.exists() else None,
     )
 
     page = context.new_page()
