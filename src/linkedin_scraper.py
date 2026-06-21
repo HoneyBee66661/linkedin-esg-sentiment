@@ -97,11 +97,12 @@ def parse_relative_date(text: str) -> Optional[datetime]:
 def apply_stealth(page: Page):
     """Apply playwright-stealth evasions."""
     try:
-        from playwright_stealth import Stealth
-        stealth = Stealth()
-        stealth.apply_stealth(page)
-    except ImportError:
-        logger.warning("playwright-stealth not installed — running without stealth")
+        from playwright_stealth.stealth import Stealth
+        s = Stealth()
+        s.apply_stealth_sync(page)
+        logger.info("✅ Playwright stealth applied")
+    except (ImportError, AttributeError) as e:
+        logger.warning(f"playwright-stealth not available ({e}) — running with manual evasions")
         # Apply minimal evasions manually
         page.add_init_script("""
             Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
