@@ -133,31 +133,62 @@ def save_cookies(context, cookie_path: Optional[Path] = None):
     logger.info(f"Saved {len(cookies)} cookies to {cookie_file}")
 
 
-def login_interactive(page: Page, email: str = "", password: str = ""):
+def login_and_save_cookies(
+    cookie_path: Optional[Path] = None,
+    email: str = "",
+    password: str = "",
+) -> bool:
     """
-    Interactive login — if credentials provided, auto-fill.
-    Otherwise, wait for user to login manually.
+    Open browser, let user login interactively, save cookies.
+    Returns True if cookies saved.
     """
-    page.goto("https://www.linkedin.com/login", timeout=60000)
+    cookie_file = cookie_path or Path("data/linkedin_cookies.json")
+    cookie_file.parent.mkdir(parents=True, exist_ok=True)
 
-    if email and password:
-        page.fill("#username", email)
-        page.fill("#password", password)
-        page.click('button[type="submit"]')
-        time.sleep(5)
-    else:
-        print("\n⚠️  No credentials provided.")
-        print("Please login to LinkedIn manually in the browser window.")
-        print("Waiting up to 120 seconds for login...")
-        page.wait_for_url("**/feed/**", timeout=120000)
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context(
+            viewport={"width": 1280, "height": 800},
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/125.0.0.0 Safari/537.36"
+            ),
+            locale="en-US",
+        )
+        page = context.new_page()
+        apply_stealth(page)
 
-    # Check if login succeeded
-    if "feed" in page.url or "checkpoint" in page.url:
-        logger.info(f"Login status: {page.url}")
-        return True
-    else:
-        logger.warning(f"Login may have failed. Current URL: {page.url}")
-        return False
+        page.goto("https://www.linkedin.com/login", timeout=60000)
+
+        if email and password:
+            page.fill("#username", email)
+            page.fill("#password", password)
+            page.click('button[type="submit"]')
+            time.sleep(5)
+
+        print("\n🔐 LinkedIn Login Required")
+        if not email:
+            print("Please login manually in the browser window.")
+        print("⏳ Waiting up to 180 seconds for successful login...")
+        print("(You will see the LinkedIn feed when logged in)")
+
+        try:
+            page.wait_for_url("**/feed/**", timeout=180000)
+            print("✅ Login detected! Saving cookies...")
+        except Exception:
+            print("⚠️  Timeout. Current URL:", page.url)
+            # Try to save anyway
+            pass
+
+        # Save cookies regardless (partial session may still work)
+        cookies = context.cookies()
+        with open(cookie_file, "w") as f:
+            json.dump(cookies, f, indent=2)
+        print(f"✅ Saved {len(cookies)} cookies to {cookie_file}")
+
+        browser.close()
+        return len(cookies) > 0
 
 
 def scroll_posts(page: Page, target_posts: int = 200, max_scrolls: int = 100):
@@ -230,18 +261,18 @@ def scrape_company_posts(
     # Load saved cookies first
     cookies_loaded = load_cookies(context, cookie_path)
 
-    if not cookies_loaded:
-        # Need to login
-        login_interactive(page, email, password)
-        save_cookies(context, cookie_path)
-    else:
-        # Go to feed first to validate cookies
+    if cookies_loaded:
+        # Go to feed to validate cookies
         page.goto("https://www.linkedin.com/feed/", timeout=30000)
         time.sleep(3)
         if "checkpoint" in page.url or "login" in page.url:
-            logger.warning("Cookies expired — re-logging in")
-            login_interactive(page, email, password)
-            save_cookies(context, cookie_path)
+            logger.warning("Cookies expired. Please run --login first.")
+            context.close()
+            return None
+    else:
+        logger.warning("No cookies found. Please run --login first.")
+        context.close()
+        return None
 
     # Navigate to company posts
     url = get_posts_url(slug)
@@ -364,6 +395,10 @@ def main():
         help="Run browser in headless mode (default: visible for login)"
     )
     parser.add_argument(
+        "--login", action="store_true",
+        help="Only login and save cookies, do not scrape"
+    )
+    parser.add_argument(
         "--verbose", "-v", action="store_true",
         help="Verbose logging"
     )
@@ -374,6 +409,20 @@ def main():
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
+
+    cookie_path = Path(args.cookie)
+
+    # If --login flag, just login and save cookies
+    if args.login:
+        success = login_and_save_cookies(
+            cookie_path=cookie_path,
+            email=args.email or "",
+            password=args.password or "",
+        )
+        if success:
+            print("\n✅ Cookies saved. You can now run without --login to scrape.")
+            print("  Example: python -m src.linkedin_scraper --companies vale --headless")
+        return
 
     # Determine which companies to scrape
     if args.all:
