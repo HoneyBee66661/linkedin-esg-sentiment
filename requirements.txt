@@ -1,0 +1,10 @@
+pandas>=1.5
+beautifulsoup4>=4.12
+lxml>=4.9
+textblob>=0.17
+pytest>=7.0
+sastrawi>=1.0
+jupyter>=1.0
+matplotlib>=3.7
+seaborn>=0.12
+pyyaml>=6.0
